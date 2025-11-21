@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汇率划算度比较工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #007bff;
+        }
+        h1 {
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .input-group label {
+            flex: 0 0 250px; /* Label width */
+            margin-right: 15px;
+            font-weight: bold;
+            color: #555;
+            font-size: 0.95em;
+        }
+        .input-group input[type="number"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1em;
+            min-width: 150px; /* Ensure input is not too small on small screens */
+        }
+        .input-group span {
+            margin-left: 10px;
+            color: #6c757d;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 25px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #result {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e9f7ef;
+            border: 1px solid #d4edda;
+            border-radius: 8px;
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+        #result strong {
+            color: #007bff;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .note {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-top: 20px;
+            border-top: 1px dashed #eee;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>美元兑换方式划算度比较</h1>
+        <p>输入以下汇率和您想兑换的美元数量，工具将帮您判断并计算具体节省金额。</p>
+
+        <div class="input-group">
+            <label for="targetUsdAmount">我想要兑换的美元数量</label>
+            <input type="number" id="targetUsdAmount" placeholder="例如：10000" step="1">
+            <span>(USD)</span>
+        </div>
+
+        <div class="input-group">
+            <label for="cnyToUsdMerchant">商家提供：人民币兑美元汇率</label>
+            <input type="number" id="cnyToUsdMerchant" placeholder="例如：7.20" step="0.0001">
+            <span>(换1美元需要多少人民币)</span>
+        </div>
+
+        <div class="input-group">
+            <label for="hkdToUsdMerchant">商家提供：港币兑美元汇率</label>
+            <input type="number" id="hkdToUsdMerchant" placeholder="例如：7.80" step="0.0001">
+            <span>(换1美元需要多少港币)</span>
+        </div>
+
+        <div class="input-group">
+            <label for="hkdToCnyBank">银行提供：港币兑人民币汇率</label>
+            <input type="number" id="hkdToCnyBank" placeholder="例如：0.90" step="0.0001">
+            <span>(1港币能换多少人民币)</span>
+        </div>
+
+        <button onclick="calculate()">比较划算度</button>
+
+        <div id="result">
+            <!-- 结果将显示在这里 -->
+        </div>
+
+        <p class="note">
+            **关于汇率输入：**<br>
+            *   **人民币兑美元** 和 **港币兑美元** 通常是“正向报价”，即换1单位外币需要多少本币。
+            *   **银行港币兑人民币** 汇率请填写您“卖出港币，换入人民币”时的汇率（例如，1港币能换0.9人民币，则填写0.9）。
+            *   请确保所有输入都是**数字**。
+        </p>
+    </div>
+
+    <script>
+        function calculate() {
+            const targetUsdAmount = parseFloat(document.getElementById('targetUsdAmount').value);
+            const cnyToUsdMerchant = parseFloat(document.getElementById('cnyToUsdMerchant').value);
+            const hkdToUsdMerchant = parseFloat(document.getElementById('hkdToUsdMerchant').value);
+            const hkdToCnyBank = parseFloat(document.getElementById('hkdToCnyBank').value);
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = ''; // Clear previous results
+
+            // Validate inputs
+            if (isNaN(targetUsdAmount) || targetUsdAmount <= 0 ||
+                isNaN(cnyToUsdMerchant) || cnyToUsdMerchant <= 0 || 
+                isNaN(hkdToUsdMerchant) || hkdToUsdMerchant <= 0 || 
+                isNaN(hkdToCnyBank) || hkdToCnyBank <= 0) {
+                resultDiv.innerHTML = '<p class="error">请输入所有有效的正数！包括您想兑换的美元数量和所有汇率。</p>';
+                return;
+            }
+
+            // Path 1: Direct CNY to USD
+            const costCnyPerUsdDirect = cnyToUsdMerchant;
+            const totalCostCnyDirect = targetUsdAmount * costCnyPerUsdDirect;
+
+            // Path 2: HKD to USD (then convert HKD cost to CNY)
+            const costHkdPerUsd = hkdToUsdMerchant; // 换1美元需要多少港币
+            const costCnyPerUsdViaHkd = costHkdPerUsd * hkdToCnyBank; // 将港币成本换算成人民币
+            const totalCostCnyViaHkd = targetUsdAmount * costCnyPerUsdViaHkd;
+
+
+            let comparisonResult = '';
+            let totalSavings = 0;
+
+            comparisonResult += `<h3>计算结果：</h3>`;
+            comparisonResult += `<p>您想兑换 <strong>${targetUsdAmount.toLocaleString('en-US')}</strong> 美元。</p>`;
+            comparisonResult += `<p>1. 直接用人民币兑换 <strong>${targetUsdAmount.toLocaleString('en-US')}</strong> 美元，约需 <strong>${totalCostCnyDirect.toFixed(2)}</strong> 人民币。</p>`;
+            comparisonResult += `<p>2. 通过港币中转兑换 <strong>${targetUsdAmount.toLocaleString('en-US')}</strong> 美元，约需 <strong>${totalCostCnyViaHkd.toFixed(2)}</strong> 人民币。</p>`;
+
+            if (totalCostCnyDirect < totalCostCnyViaHkd) {
+                totalSavings = totalCostCnyViaHkd - totalCostCnyDirect;
+                comparisonResult += `<p><strong>结论：</strong><br>⭐ <strong>直接用人民币兑换美元更划算！</strong> 此次兑换您总计可节省约 <strong>${totalSavings.toFixed(2)}</strong> 人民币。</p>`;
+            } else if (totalCostCnyViaHkd < totalCostCnyDirect) {
+                totalSavings = totalCostCnyDirect - totalCostCnyViaHkd;
+                comparisonResult += `<p><strong>结论：</strong><br>⭐ <strong>通过港币兑换美元更划算！</strong> 此次兑换您总计可节省约 <strong>${totalSavings.toFixed(2)}</strong> 人民币。</p>`;
+            } else {
+                comparisonResult += `<p><strong>结论：</strong><br>两种兑换方式的成本相同，没有差价。</p>`;
+            }
+
+            resultDiv.innerHTML = comparisonResult;
+        }
+    </script>
+</body>
+</html>
