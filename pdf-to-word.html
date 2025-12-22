@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF 转 Word 工具 (纯前端版)</title>
+    <title>PDF 转 Word 工具 (修复版)</title>
     <!-- 引入必要的库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
@@ -27,27 +27,45 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             text-align: center;
             max-width: 500px;
+            width: 90%;
+        }
+        h1 { color: #333; margin-bottom: 1.5rem; }
+        
+        /* 修复后的上传区域样式 */
+        .upload-wrapper {
+            position: relative;
             width: 100%;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 1.5rem;
-        }
-        .upload-area {
+            height: 150px;
             border: 2px dashed #007bff;
             border-radius: 8px;
-            padding: 40px 20px;
-            cursor: pointer;
-            transition: background 0.3s;
-            margin-bottom: 20px;
             background-color: #f8fbff;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.3s;
         }
-        .upload-area:hover {
+        .upload-wrapper:hover {
             background-color: #e6f0ff;
         }
-        input[type="file"] {
-            display: none;
+        
+        /* 让 input 覆盖整个区域，但完全透明 */
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 10;
         }
+        
+        .upload-text {
+            pointer-events: none; /* 让文字不阻挡点击 */
+        }
+
         button {
             background-color: #007bff;
             color: white;
@@ -58,159 +76,139 @@
             cursor: pointer;
             transition: background 0.3s;
             width: 100%;
+            margin-top: 10px;
         }
-        button:hover {
-            background-color: #0056b3;
-        }
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        #status {
-            margin-top: 15px;
-            color: #666;
-            font-size: 14px;
-            min-height: 20px;
-        }
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(0,0,0,0.1);
-            border-radius: 50%;
-            border-top-color: #007bff;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-            vertical-align: middle;
-            display: none;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        #status { margin-top: 15px; color: #666; font-size: 14px; min-height: 20px; word-break: break-all;}
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>📄 PDF 转 Word</h1>
-    <p style="color: #666; font-size: 0.9em; margin-bottom: 20px;">基于浏览器本地转换，文件不会上传服务器，安全隐私。</p>
+    <p style="color: #666; font-size: 0.9em; margin-bottom: 20px;">纯本地转换，不消耗流量，保护隐私。</p>
     
-    <div class="upload-area" onclick="document.getElementById('pdfInput').click()">
-        <span style="font-size: 24px;">📂</span><br>
-        <strong>点击选择 PDF 文件</strong>
-        <p style="margin: 5px 0 0; font-size: 12px; color: #888;">仅支持文字类 PDF</p>
+    <!-- 修复后的上传结构 -->
+    <div class="upload-wrapper">
+        <input type="file" id="pdfInput" class="file-input" accept=".pdf" onchange="handleFileSelect(event)">
+        <div class="upload-text">
+            <span style="font-size: 30px;">📂</span><br>
+            <strong>点击此处选择 PDF 文件</strong>
+        </div>
     </div>
     
-    <input type="file" id="pdfInput" accept=".pdf" onchange="handleFileSelect(event)">
-    
-    <div id="status">
-        <div class="loading-spinner" id="spinner"></div>
-        <span id="statusText">等待文件上传...</span>
-    </div>
-
+    <div id="status">等待上传文件...</div>
     <button id="convertBtn" onclick="convertPdfToWord()" disabled>开始转换并下载</button>
 </div>
 
 <script>
     let selectedFile = null;
-    const statusText = document.getElementById('statusText');
+    const statusText = document.getElementById('status');
     const convertBtn = document.getElementById('convertBtn');
-    const spinner = document.getElementById('spinner');
 
-    // 初始化 pdf.js worker
+    // 强制指定 worker 地址，防止跨域错误
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     function handleFileSelect(event) {
         const file = event.target.files[0];
-        if (file) {
-            if (file.type !== 'application/pdf') {
-                statusText.innerText = "错误：请选择 PDF 文件";
-                statusText.style.color = "red";
-                selectedFile = null;
-                convertBtn.disabled = true;
-                return;
-            }
-            selectedFile = file;
-            statusText.innerText = `已选中: ${file.name}`;
-            statusText.style.color = "#333";
-            convertBtn.disabled = false;
+        if (!file) return;
+
+        console.log("检测到文件:", file.name); // 调试用
+
+        if (file.type !== 'application/pdf') {
+            statusText.innerText = "❌ 错误：请只上传 PDF 文件";
+            statusText.style.color = "red";
+            convertBtn.disabled = true;
+            return;
         }
+
+        selectedFile = file;
+        statusText.innerText = `✅ 已选中: ${file.name}`;
+        statusText.style.color = "green";
+        convertBtn.disabled = false;
     }
 
     async function convertPdfToWord() {
-        if (!selectedFile) return;
+        if (!selectedFile) {
+            alert("请先选择文件！");
+            return;
+        }
 
-        // UI 状态更新
         convertBtn.disabled = true;
-        spinner.style.display = 'inline-block';
-        statusText.innerText = "正在读取 PDF 内容...";
+        convertBtn.innerText = "处理中，请稍候...";
+        statusText.innerText = "正在解析 PDF (这可能需要几秒钟)...";
 
         try {
             const arrayBuffer = await selectedFile.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
             
-            let fullText = "";
+            // 读取 PDF 文档
+            const loadingTask = pdfjsLib.getDocument({data: arrayBuffer});
+            const pdf = await loadingTask.promise;
+            
+            let docChildren = [];
             const totalPages = pdf.numPages;
-            
-            // 使用 docx 库创建文档结构
-            const docChildren = [];
 
             for (let i = 1; i <= totalPages; i++) {
-                statusText.innerText = `正在处理第 ${i} / ${totalPages} 页...`;
+                statusText.innerText = `正在转换第 ${i} / ${totalPages} 页...`;
                 
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
                 
-                // 简单的文本提取逻辑：将每一行文本合并
-                // 注意：这里无法完美还原复杂的排版（如表格、多栏）
-                let pageParagraphs = textContent.items.map(item => {
-                    return new docx.Paragraph({
-                        children: [
-                            new docx.TextRun({
-                                text: item.str,
-                                size: 24 // 约等于 12pt
-                            }),
-                        ],
-                        spacing: { after: 200 } // 段落间距
-                    });
+                // 简单的文字拼接逻辑
+                let paragraphText = "";
+                let lastY = -1;
+
+                textContent.items.forEach(item => {
+                    // 这里做一个简单的分段处理：如果Y轴变化大，就认为是新行
+                    if (lastY !== -1 && Math.abs(item.transform[5] - lastY) > 10) {
+                         paragraphText += "\n";
+                    }
+                    paragraphText += item.str;
+                    lastY = item.transform[5];
                 });
 
-                // 添加分页符（除了最后一页）
+                // 将提取的文字放入 Word 段落
+                // 注意：为了避免生成空行，过滤一下
+                const lines = paragraphText.split('\n');
+                lines.forEach(line => {
+                    if(line.trim() !== "") {
+                        docChildren.push(
+                            new docx.Paragraph({
+                                children: [ new docx.TextRun({ text: line, size: 24 }) ]
+                            })
+                        );
+                    }
+                });
+
+                // 每一页 PDF 结束后，在 Word 里加个分页符
                 if (i < totalPages) {
-                    pageParagraphs.push(new docx.Paragraph({
-                        children: [new docx.PageBreak()]
-                    }));
+                    docChildren.push(new docx.Paragraph({ children: [new docx.PageBreak()] }));
                 }
-                
-                docChildren.push(...pageParagraphs);
             }
 
-            statusText.innerText = "正在生成 Word 文件...";
+            statusText.innerText = "正在打包 Word 文件...";
 
-            // 创建文档对象
             const doc = new docx.Document({
-                sections: [{
-                    properties: {},
-                    children: docChildren,
-                }],
+                sections: [{ properties: {}, children: docChildren }]
             });
 
-            // 生成 Blob 并下载
             const blob = await docx.Packer.toBlob(doc);
             const fileName = selectedFile.name.replace('.pdf', '.docx');
+            
             saveAs(blob, fileName);
 
-            statusText.innerText = "✅ 转换成功！已开始下载。";
-            spinner.style.display = 'none';
-            convertBtn.disabled = false;
+            statusText.innerText = "🎉 转换成功！";
             convertBtn.innerText = "转换下一个";
+            convertBtn.disabled = false;
 
         } catch (error) {
-            console.error(error);
-            statusText.innerText = "❌ 转换失败，请检查文件是否加密或损坏。";
-            statusText.style.color = "red";
-            spinner.style.display = 'none';
+            console.error("转换出错:", error);
+            statusText.innerText = "❌ 转换失败：" + error.message;
+            alert("转换失败，可能原因：\n1. PDF 是纯图片扫描版（无法提取文字）\n2. PDF 有密码保护\n3. 浏览器版本过低");
             convertBtn.disabled = false;
+            convertBtn.innerText = "重试";
         }
     }
 </script>
