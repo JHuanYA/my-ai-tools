@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FRM 词汇闪卡 - Gemini 老师为你准备</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px 40px;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            position: relative;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            color: #666;
+            width: 100%;
+        }
+
+        .word-number, .total-words {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .word-number input {
+            width: 50px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            text-align: center;
+            -moz-appearance: textfield; /* Firefox */
+        }
+        /* Hide arrows for number input */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .word-display {
+            margin-bottom: 40px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .english-word {
+            font-size: 2.8em;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 15px;
+            word-wrap: break-word;
+            line-height: 1.2;
+        }
+
+        .chinese-meaning {
+            font-size: 1.6em;
+            color: #555;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .controls button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
+        }
+
+        .controls button:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+
+        .controls button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="word-number">
+                第 <input type="number" id="currentWordInput" min="1" value="1"> 个
+            </div>
+            <div class="total-words">
+                共 <span id="totalWords"></span> 个单词
+            </div>
+        </div>
+
+        <div class="word-display">
+            <div class="english-word" id="englishWord"></div>
+            <div class="chinese-meaning" id="chineseMeaning"></div>
+        </div>
+
+        <div class="controls">
+            <button id="nextButton">下一个</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        由 Gemini 老师 (HubX Team) 为你的 FRM 备考提供
+    </div>
+
+    <script>
+        // 你的FRM词汇列表
+        // 你可以根据自己的需求在这里添加更多词汇
+        const vocabulary = [
+            { english: "Risk Management", chinese: "风险管理" },
+            { english: "Value at Risk (VaR)", chinese: "风险价值" },
+            { english: "Expected Shortfall (ES)", chinese: "预期损失" },
+            { english: "Credit Risk", chinese: "信用风险" },
+            { english: "Market Risk", chinese: "市场风险" },
+            { english: "Operational Risk", chinese: "操作风险" },
+            { english: "Liquidity Risk", chinese: "流动性风险" },
+            { english: "Systematic Risk", chinese: "系统性风险" },
+            { english: "Unsystematic Risk", chinese: "非系统性风险" },
+            { english: "Volatility", chinese: "波动率" },
+            { english: "Derivative", chinese: "衍生品" },
+            { english: "Option", chinese: "期权" },
+            { english: "Forward Contract", chinese: "远期合约" },
+            { english: "Futures Contract", chinese: "期货合约" },
+            { english: "Swap", chinese: "互换" },
+            { english: "Hedging", chinese: "套期保值" },
+            { english: "Speculation", chinese: "投机" },
+            { english: "Arbitrage", chinese: "套利" },
+            { english: "Duration", chinese: "久期" },
+            { english: "Convexity", chinese: "凸性" },
+            { english: "Bond", chinese: "债券" },
+            { english: "Equity", chinese: "股票" },
+            { english: "Capital Asset Pricing Model (CAPM)", chinese: "资本资产定价模型" },
+            { english: "Arbitrage Pricing Theory (APT)", chinese: "套利定价理论" },
+            { english: "Beta", chinese: "贝塔系数" },
+            { english: "Alpha", chinese: "阿尔法系数" },
+            { english: "Sharpe Ratio", chinese: "夏普比率" },
+            { english: "Sortino Ratio", chinese: "索提诺比率" },
+            { english: "Treynor Ratio", chinese: "特雷诺比率" },
+            { english: "Correlation", chinese: "相关性" },
+            { english: "Covariance", chinese: "协方差" },
+            { english: "Hypothesis Testing", chinese: "假设检验" },
+            { english: "Confidence Interval", chinese: "置信区间" },
+            { english: "Regression Analysis", chinese: "回归分析" },
+            { english: "Monte Carlo Simulation", chinese: "蒙特卡洛模拟" },
+            { english: "Stress Testing", chinese: "压力测试" },
+            { english: "Backtesting", chinese: "回溯测试" },
+            { english: "Collateral", chinese: "抵押品" },
+            { english: "Counterparty Risk", chinese: "交易对手风险" },
+            { english: "Default Probability (PD)", chinese: "违约概率" },
+            { english: "Loss Given Default (LGD)", chinese: "违约损失率" },
+            { english: "Exposure at Default (EAD)", chinese: "违约风险暴露" },
+            { english: "Securitization", chinese: "证券化" },
+            { english: "Credit Default Swap (CDS)", chinese: "信用违约互换" },
+            { english: "Basel Accords", chinese: "巴塞尔协议" },
+            { english: "Pillar 1", chinese: "支柱一 (最低资本要求)" },
+            { english: "Pillar 2", chinese: "支柱二 (监管审查程序)" },
+            { english: "Pillar 3", chinese: "支柱三 (市场纪律)" },
+            { english: "Risk-Weighted Assets (RWA)", chinese: "风险加权资产" },
+            { english: "Capital Adequacy Ratio", chinese: "资本充足率" },
+            { english: "Leverage Ratio", chinese: "杠杆率" },
+            { english: "Common Equity Tier 1 (CET1)", chinese: "普通股权一级资本" },
+            { english: "Contingent Convertible Bonds (CoCos)", chinese: "应急可转换债券" },
+            { english: "Expected Loss (EL)", chinese: "预期损失" },
+            { english: "Unexpected Loss (UL)", chinese: "非预期损失" },
+            { english: "Stochastic Process", chinese: "随机过程" },
+            { english: "Brownian Motion", chinese: "布朗运动" },
+            { english: "GARCH Model", chinese: "广义自回归条件异方差模型" },
+            { english: "Extreme Value Theory (EVT)", chinese: "极值理论" },
+            { english: "Systemic Risk", chinese: "系统性风险 (强调传染性)" }, // 与 Systematic Risk 区分
+            { english: "Moral Hazard", chinese: "道德风险" },
+            { english: "Adverse Selection", chinese: "逆向选择" },
+            { english: "Fiduciary Duty", chinese: "受托人义务" },
+            { english: "Financial Engineering", chinese: "金融工程" },
+            { english: "Algorithmic Trading", chinese: "算法交易" },
+            { english: "High-Frequency Trading (HFT)", chinese: "高频交易" },
+            { english: "Big Data", chinese: "大数据" },
+            { english: "Machine Learning", chinese: "机器学习" },
+            { english: "Artificial Intelligence (AI)", chinese: "人工智能" },
+            { english: "Blockchain", chinese: "区块链" },
+            { english: "Cryptocurrency", chinese: "加密货币" },
+            { english: "Fintech", chinese: "金融科技" },
+            { english: "Regulatory Arbitrage", chinese: "监管套利" },
+            { english: "Model Risk", chinese: "模型风险" },
+            { english: "Reputational Risk", chinese: "声誉风险" },
+            { english: "Strategic Risk", chinese: "战略风险" },
+            { english: "Legal Risk", chinese: "法律风险" },
+            { english: "Compliance Risk", chinese: "合规风险" },
+            { english: "Solvency Risk", chinese: "偿付能力风险" },
+            { english: "Basis Risk", chinese: "基差风险" },
+            { english: "Gap Risk", chinese: "缺口风险" },
+            { english: "J-Curve Effect", chinese: "J曲线效应" },
+            { english: "Tail Risk", chinese: "尾部风险" },
+            { english: "Fat Tails", chinese: "肥尾" },
+            { english: "Leveraged Buyout (LBO)", chinese: "杠杆收购" },
+            { english: "Merger and Acquisition (M&A)", chinese: "兼并与收购" },
+            { english: "Divestiture", chinese: "资产剥离" },
+            { english: "Initial Public Offering (IPO)", chinese: "首次公开募股" },
+            { english: "Asset-Backed Securities (ABS)", chinese: "资产支持证券" },
+            { english: "Collateralized Debt Obligation (CDO)", chinese: "担保债务凭证" },
+            { english: "Mortgage-Backed Securities (MBS)", chinese: "抵押贷款支持证券" },
+            { english: "Interest Rate Risk", chinese: "利率风险" },
+            { english: "Foreign Exchange Risk", chinese: "外汇风险" },
+            { english: "Commodity Risk", chinese: "商品风险" },
+            { english: "Equity Risk", chinese: "股权风险" },
+            { english: "Cash Flow at Risk (CFaR)", chinese: "现金流风险价值" },
+            { english: "Earnings at Risk (EaR)", chinese: "收益风险价值" },
+            { english: "Enterprise Risk Management (ERM)", chinese: "企业风险管理" },
+            { english: "Risk Appetite", chinese: "风险偏好" },
+            { english: "Risk Tolerance", chinese: "风险容忍度" },
+            { english: "Risk Culture", chinese: "风险文化" },
+            { english: "Three Lines of Defense", chinese: "三道防线 (风险管理)" },
+            { english: "Key Risk Indicators (KRIs)", chinese: "关键风险指标" },
+            { english: "Economic Capital", chinese: "经济资本" },
+            { english: "Regulatory Capital", chinese: "监管资本" },
+            { english: "Black-Scholes-Merton Model", chinese: "布莱克-斯科尔斯-默顿模型" },
+            { english: "Binomial Model", chinese: "二叉树模型" },
+            { english: "Greeks (Delta, Gamma, Vega, Theta, Rho)", chinese: "希腊字母 (期权风险指标)" },
+            { english: "Stressed VaR", chinese: "压力风险价值" },
+            { english: "Incremental Risk Charge (IRC)", chinese: "增量风险资本要求" },
+            { english: "Comprehensive Risk Measure (CRM)", chinese: "综合风险计量" },
+            { english: "Funding Liquidity Risk", chinese: "融资流动性风险" },
+            { english: "Market Liquidity Risk", chinese: "市场流动性风险" },
+            { english: "Concentration Risk", chinese: "集中度风险" },
+            { english: "Wrong-Way Risk", chinese: "逆向风险" },
+            { english: "Right-Way Risk", chinese: "顺向风险" },
+            { english: "Covenant", chinese: "契约条款" },
+            { english: "Workout", chinese: "债务重组" },
+            { english: "Recovery Rate", chinese: "回收率" },
+            { english: "Subordinated Debt", chinese: "次级债" },
+            { english: "Senior Debt", chinese: "优先债" },
+            { english: "Going Concern", chinese: "持续经营" },
+            { english: "Default Mode", chinese: "违约模式" },
+            { english: "Mark-to-Market", chinese: "按市价计价" },
+            { english: "Historical Simulation", chinese: "历史模拟法" },
+            { english: "Parametric VaR", chinese: "参数法VaR" },
+            { english: "Copula", chinese: "连接函数" },
+            { english: "Scenario Analysis", chinese: "情景分析" },
+            { english: "Contagion", chinese: "传染效应" },
+            { english: "Hedge Fund", chinese: "对冲基金" },
+            { english: "Private Equity", chinese: "私募股权" },
+            { english: "Venture Capital", chinese: "风险投资" },
+            { english: "Alternative Investments", chinese: "另类投资" },
+            { english: "Quantitative Easing (QE)", chinese: "量化宽松" },
+            { english: "Negative Interest Rates", chinese: "负利率" },
+            { english: "Central Bank Digital Currency (CBDC)", chinese: "央行数字货币" },
+            { english: "ESG (Environmental, Social, Governance)", chinese: "环境、社会和治理" }
+            // 可以在这里继续添加更多词汇
+        ];
+
+        let currentIndex = 0;
+        const englishWordElem = document.getElementById('englishWord');
+        const chineseMeaningElem = document.getElementById('chineseMeaning');
+        const totalWordsElem = document.getElementById('totalWords');
+        const nextButton = document.getElementById('nextButton');
+        const currentWordInput = document.getElementById('currentWordInput');
+
+        // 初始化显示
+        totalWordsElem.textContent = vocabulary.length;
+
+        function displayWord() {
+            if (vocabulary.length === 0) {
+                englishWordElem.textContent = "词汇列表为空";
+                chineseMeaningElem.textContent = "请在代码中添加词汇。";
+                currentWordInput.value = 0;
+                return;
+            }
+            const word = vocabulary[currentIndex];
+            englishWordElem.textContent = word.english;
+            chineseMeaningElem.textContent = word.chinese;
+            currentWordInput.value = currentIndex + 1; // 显示为从1开始的序号
+        }
+
+        function goToNextWord() {
+            currentIndex = (currentIndex + 1) % vocabulary.length;
+            displayWord();
+        }
+
+        function jumpToWord() {
+            let inputVal = parseInt(currentWordInput.value, 10);
+            if (isNaN(inputVal) || inputVal < 1 || inputVal > vocabulary.length) {
+                alert(`请输入一个介于 1 到 ${vocabulary.length} 之间的数字。`);
+                currentWordInput.value = currentIndex + 1; // 恢复到当前值
+                return;
+            }
+            currentIndex = inputVal - 1; // 转换为0-based索引
+            displayWord();
+        }
+
+        // 事件监听器
+        nextButton.addEventListener('click', goToNextWord);
+        currentWordInput.addEventListener('change', jumpToWord); // 当输入框内容改变并失去焦点时触发
+        // currentWordInput.addEventListener('keyup', (event) => { // 也可以实时更新，但change事件更稳定
+        //     if (event.key === 'Enter') {
+        //         jumpToWord();
+        //     }
+        // });
+
+
+        // 页面加载时显示第一个单词
+        displayWord();
+    </script>
+</body>
+</html>
