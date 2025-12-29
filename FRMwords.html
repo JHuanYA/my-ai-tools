@@ -94,6 +94,12 @@
             line-height: 1.4;
         }
 
+        .controls {
+            display: flex;
+            gap: 20px; /* 按钮之间的间距 */
+            justify-content: center; /* 按钮居中 */
+        }
+
         .controls button {
             background-color: #28a745;
             color: white;
@@ -105,15 +111,26 @@
             transition: background-color 0.3s ease, transform 0.2s ease;
             box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
         }
+        /* Style for Previous button to differentiate slightly, if desired */
+        .controls button#prevButton {
+            background-color: #007bff; /* Use a different color for 'Previous' */
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+        }
 
         .controls button:hover {
             background-color: #218838;
             transform: translateY(-2px);
         }
+        .controls button#prevButton:hover {
+            background-color: #0056b3;
+        }
 
         .controls button:active {
             transform: translateY(0);
             box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+        }
+        .controls button#prevButton:active {
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
         }
 
         .footer {
@@ -140,6 +157,7 @@
         </div>
 
         <div class="controls">
+            <button id="prevButton">上一个</button>
             <button id="nextButton">下一个</button>
         </div>
     </div>
@@ -297,6 +315,7 @@
         const chineseMeaningElem = document.getElementById('chineseMeaning');
         const totalWordsElem = document.getElementById('totalWords');
         const nextButton = document.getElementById('nextButton');
+        const prevButton = document.getElementById('prevButton'); // 获取新的“上一个”按钮
         const currentWordInput = document.getElementById('currentWordInput');
 
         // 初始化显示
@@ -320,6 +339,12 @@
             displayWord();
         }
 
+        function goToPreviousWord() {
+            // 如果当前是第一个词汇，则循环到最后一个词汇
+            currentIndex = (currentIndex - 1 + vocabulary.length) % vocabulary.length;
+            displayWord();
+        }
+
         function jumpToWord() {
             let inputVal = parseInt(currentWordInput.value, 10);
             if (isNaN(inputVal) || inputVal < 1 || inputVal > vocabulary.length) {
@@ -333,13 +358,8 @@
 
         // 事件监听器
         nextButton.addEventListener('click', goToNextWord);
+        prevButton.addEventListener('click', goToPreviousWord); // 添加“上一个”按钮的监听器
         currentWordInput.addEventListener('change', jumpToWord); // 当输入框内容改变并失去焦点时触发
-        // currentWordInput.addEventListener('keyup', (event) => { // 也可以实时更新，但change事件更稳定
-        //     if (event.key === 'Enter') {
-        //         jumpToWord();
-        //     }
-        // });
-
 
         // 页面加载时显示第一个单词
         displayWord();
