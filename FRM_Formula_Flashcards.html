@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FRM 公式卡片 - Gemini 老师为你准备</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px 40px;
+            width: 100%;
+            max-width: 800px; /* 增加最大宽度以更好地显示公式 */
+            text-align: left; /* 内容区域文字左对齐 */
+            position: relative;
+            animation: fadeIn 0.8s ease-out;
+            margin-bottom: 20px; /* 底部留出空间 */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            color: #666;
+            width: 100%;
+        }
+
+        .formula-number, .total-formulas {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .formula-number input {
+            width: 60px; /* 增加输入框宽度 */
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            text-align: center;
+            -moz-appearance: textfield; /* Firefox */
+        }
+        /* 隐藏数字输入框的上下箭头 */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .card-content {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #fcfcfc;
+            min-height: 350px; /* 确保内容区有足够的最小高度 */
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* 各个卡片内容区之间的间距 */
+        }
+
+        .card-section {
+            margin-bottom: 5px;
+        }
+
+        .card-section h3 {
+            font-size: 1.3em;
+            color: #007bff;
+            margin: 0 0 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 5px;
+        }
+
+        .card-section p {
+            font-size: 1em;
+            line-height: 1.6;
+            color: #444;
+            margin: 0;
+        }
+        /* 公式内容区的样式 */
+        .card-section .formula-latex {
+             font-size: 1.1em;
+             background-color: #e9f7ff; /* 浅蓝色背景突出公式 */
+             padding: 10px;
+             border-radius: 5px;
+             overflow-x: auto; /* 允许横向滚动以适应长公式 */
+             text-align: center; /* 公式居中显示 */
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px; /* 按钮之间的间距 */
+            justify-content: center; /* 按钮居中 */
+        }
+
+        .controls button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 25px; /* 按钮大小适中 */
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
+            min-width: 120px; /* 按钮固定宽度 */
+        }
+        
+        .controls button#prevButton {
+            background-color: #007bff; /* “上一个”按钮使用不同颜色 */
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+        }
+
+        .controls button:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+        .controls button#prevButton:hover {
+            background-color: #0056b3;
+        }
+
+        .controls button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+        }
+        .controls button#prevButton:active {
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #888;
+        }
+    </style>
+    <!-- MathJax CDN，用于渲染 LaTeX 公式 -->
+    <script type="text/javascript" id="MathJax-script" async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <script>
+        // MathJax 配置，确保它能识别你的 LaTeX 语法
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']], // 支持行内公式 $...$
+                displayMath: [['$$', '$$'], ['\\[', '\\]']] // 支持块级公式 $$...$$
+            },
+            svg: {
+                fontCache: 'global' // 全局字体缓存，提高渲染速度
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="formula-number">
+                第 <input type="number" id="currentFormulaInput" min="1" value="1"> 个
+            </div>
+            <div class="total-formulas">
+                当前：<span id="currentFormulaDisplay">1</span> / 共 <span id="totalFormulas"></span> 个公式
+            </div>
+        </div>
+
+        <div class="card-content">
+            <div class="card-section">
+                <h3>公式名称：</h3>
+                <p id="formulaName"></p>
+            </div>
+            <div class="card-section">
+                <h3>使用场景：</h3>
+                <p id="formulaScenario"></p>
+            </div>
+            <div class="card-section">
+                <h3>公式：</h3>
+                <div class="formula-latex" id="formulaEquation"></div>
+            </div>
+            <div class="card-section">
+                <h3>记忆口诀：</h3>
+                <p id="formulaMnemonic"></p>
+            </div>
+            <div class="card-section">
+                <h3>注意事项：</h3>
+                <p id="formulaNotes"></p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="prevButton">上一个</button>
+            <button id="nextButton">下一个</button>
+        </div>
+    </div>
+
+    <div class="footer">
+        由 Gemini 老师 (HubX Team) 为你的 FRM 备考提供
+    </div>
+
+    <script>
+        // FRM 公式数据列表
+        // 你可以根据自己的需求在这里添加更多公式，使用LaTeX语法编写公式部分
+        const formulas = [
+            {
+                name: "Black-Scholes-Merton (BSM) 期权定价模型",
+                scenario: "用于非分红欧式看涨/看跌期权的定价，假设标的资产价格服从几何布朗运动，无风险利率恒定，波动率恒定。",
+                formula: "$$C = S_0 N(d_1) - K e^{-rT} N(d_2)$$\n$$P = K e^{-rT} N(-d_2) - S_0 N(-d_1)$$\n其中:\n$$d_1 = \\frac{\\ln(S_0/K) + (r + \\sigma^2/2)T}{\\sigma \\sqrt{T}}$$\n$$d_2 = d_1 - \\sigma \\sqrt{T}$$",
+                mnemonic: "看涨期权就是持有股票减去借款买入期权",
+                notes: "BSM模型有严格假设，实际应用时需注意。不适用于美式期权。波动率是关键输入参数，通常通过历史数据或隐含波动率估计。"
+            },
+            {
+                name: "VaR (Value at Risk) 的计算",
+                scenario: "衡量在给定置信水平和时间周期内，投资组合可能遭受的最大损失。常用于市场风险管理。",
+                formula: "参数法 VaR (正态分布):\n$$VaR = -(\\mu - z_{\\alpha} \\sigma) W_0$$\n其中，$\\mu$ 是收益率均值，$\\sigma$ 是收益率标准差，$z_{\\alpha}$ 是标准正态分布在 $\\alpha$ 置信水平下的分位数，$W_0$ 是初始投资额。\n或者，更常见的简化版 (假定 $\\mu = 0$):\n$$VaR = -Z_{\\alpha} \\sigma P$$",
+                mnemonic: "正态分布很简单，就是均值减去Z值乘以标准差。",
+                notes: "VaR无法衡量尾部风险（极端损失），对非正态分布和非线性产品表现不佳。三种主要计算方法：参数法、历史模拟法、蒙特卡洛模拟法。历史模拟法不假设正态分布，直接使用历史数据分位数。"
+            },
+            {
+                name: "Expected Shortfall (ES) / Conditional VaR (CVaR)",
+                scenario: "在损失超过VaR阈值的情况下，预期的平均损失。弥补了VaR无法衡量尾部风险的缺点，更关注极端损失的平均水平。",
+                formula: "$$ES_\\alpha = E[L | L > VaR_\\alpha]$$\n对于连续分布，且损失 $L$ 的PDF为 $f(l)$，CDF为 $F(l)$:\n$$ES_\\alpha = \\frac{1}{1-\\alpha} \\int_{VaR_\\alpha}^{\\infty} l f(l) dl$$\n对于正态分布，且 $VaR_\\alpha = \\mu + \\sigma \\frac{\\phi(N^{-1}(\\alpha))}{1-\\alpha}$$",
+                mnemonic: "ES就是VaR之后，平均多惨。",
+                notes: "ES相比VaR是更一致的风险度量（coherent risk measure）。它满足次可加性（subadditivity），意味着分散化总是能够降低风险。计算通常比VaR复杂。"
+            },
+            {
+                name: "久期 (Duration)",
+                scenario: "衡量债券价格对利率变化的敏感性，即利率每变化1%，债券价格大约变化多少百分比。",
+                formula: "麦考利久期 (Macaulay Duration):\n$$MacD = \\frac{\\sum_{t=1}^N t \\times C_t / (1+y)^t}{\\sum_{t=1}^N C_t / (1+y)^t} = \\frac{\\sum_{t=1}^N t \\times C_t / (1+y)^t}{P}$$\n修正久期 (Modified Duration):\n$$ModD = \\frac{MacD}{1 + y/k}$$ (y是年化收益率，k是每年付息次数)\n其中，$C_t$ 是第 $t$ 期的现金流，$y$ 是到期收益率，$P$ 是债券当前价格。",
+                mnemonic: "久期像跷跷板，利率翘，价格跌。",
+                notes: "久期是线性近似，只适用于小幅利率变动。对于大幅利率变动，需要考虑凸性（Convexity）。零息债券的麦考利久期等于其到期时间。"
+            },
+            {
+                name: "信用风险：违约概率 (PD), 违约损失率 (LGD), 违约风险暴露 (EAD)",
+                scenario: "用于量化信用风险的三大关键组成部分，是计算预期损失 (EL) 和非预期损失 (UL) 的基础。",
+                formula: "预期损失 (Expected Loss, EL):\n$$EL = PD \\times LGD \\times EAD$$\n其中:\n*   PD (Probability of Default): 债务人违约的概率。\n*   LGD (Loss Given Default): 债务人违约后，债权人损失的百分比 (通常为 1 - Recovery Rate)。\n*   EAD (Exposure at Default): 债务人违约时，债权人面临的风险敞口。",
+                mnemonic: "信用损失三要素：违约率、损失率、敞口额。",
+                notes: "EL是银行在正常经营下预计会发生的损失，通常可以通过计提准备金来覆盖。UL（非预期损失）则需要资本来覆盖。"
+            },
+            {
+                name: "CAPM (Capital Asset Pricing Model) 资本资产定价模型",
+                scenario: "用于确定一项资产或投资组合的预期收益率，给定其系统性风险（贝塔）。是金融经济学中重要的均衡模型。",
+                formula: "$$E(R_i) = R_f + \\beta_i (E(R_m) - R_f)$$\n其中:\n*   $E(R_i)$: 资产 $i$ 的预期收益率\n*   $R_f$: 无风险收益率\n*   $\\beta_i$: 资产 $i$ 的贝塔系数，衡量其相对于市场组合的系统性风险\n*   $E(R_m)$: 市场组合的预期收益率\n*   $(E(R_m) - R_f)$: 市场风险溢价",
+                mnemonic: "无风险收益加上风险溢价，溢价多少看Beta。",
+                notes: "CAPM假设市场是有效的，投资者是理性且规避风险的。该模型只考虑系统性风险，认为非系统性风险可以通过分散化消除。实际应用中，市场组合难以确定，且Beta估计存在误差。"
+            },
+            {
+                name: "Sharpe Ratio (夏普比率)",
+                scenario: "衡量投资组合的风险调整后收益，即每承担一单位的总风险（标准差），能获得多少超额收益。用于比较不同投资策略或基金的表现。",
+                formula: "$$Sharpe Ratio = \\frac{E(R_p) - R_f}{\\sigma_p}$$\n其中:\n*   $E(R_p)$: 投资组合的预期收益率\n*   $R_f$: 无风险收益率\n*   $\\sigma_p$: 投资组合收益率的标准差（总风险）",
+                mnemonic: "夏普高就好，风险调整后的收益。",
+                notes: "夏普比率越高，表示投资组合的风险调整后收益越好。它依赖于标准差来衡量风险，对于非对称或非正态分布的收益率可能不太适用。"
+            },
+            {
+                name: "Greeks (Delta, Gamma, Vega, Theta, Rho)",
+                scenario: "期权定价模型（如BSM模型）输出的期权价格对不同输入参数敏感性的度量，用于风险管理和对冲策略。",
+                formula: "Delta ($\\Delta$): 标的资产价格变化1单位，期权价格变化多少。\nGamma ($\\Gamma$): 标的资产价格变化1单位，Delta变化多少。\nVega: 标的资产波动率变化1%，期权价格变化多少。\nTheta ($\\Theta$): 时间流逝1天，期权价格变化多少。\nRho ($\\rho$): 无风险利率变化1%，期权价格变化多少。",
+                mnemonic: "D(方向)、G(速度)、V(波动)、T(时间)、R(利率)。",
+                notes: "Delta对冲只能在小范围价格变动下有效，因为Delta本身是变化的。Gamma是Delta的二阶导数，衡量Delta的变化率。Vega通常在波动率低估时买入期权，高估时卖出期权。Theta通常为负，意味着时间流逝会降低期权价值。"
+            }
+            // 可以在这里继续添加更多FRM公式
+            // 确保每个公式的 "formula" 字段使用 LaTeX 语法，块级公式用 $$...$$ 包裹，行内公式用 $...$ 包裹。
+        ];
+
+        let currentIndex = 0;
+        const currentFormulaInput = document.getElementById('currentFormulaInput');
+        const currentFormulaDisplay = document.getElementById('currentFormulaDisplay'); // 用于显示当前的 X
+        const totalFormulasElem = document.getElementById('totalFormulas');
+        
+        const formulaNameElem = document.getElementById('formulaName');
+        const formulaScenarioElem = document.getElementById('formulaScenario');
+        const formulaEquationElem = document.getElementById('formulaEquation'); // 公式本体
+        const formulaMnemonicElem = document.getElementById('formulaMnemonic');
+        const formulaNotesElem = document.getElementById('formulaNotes');
+
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+
+        // 增强功能：使用 localStorage 存储学习进度
+        const STORAGE_KEY = 'frmFormulaFlashcardIndex';
+
+        // 保存当前公式索引到 localStorage
+        function saveProgress() {
+            localStorage.setItem(STORAGE_KEY, currentIndex.toString());
+        }
+
+        // 从 localStorage 加载上次的公式索引
+        function loadProgress() {
+            const savedIndex = localStorage.getItem(STORAGE_KEY);
+            if (savedIndex !== null && !isNaN(parseInt(savedIndex, 10))) {
+                const parsedIndex = parseInt(savedIndex, 10);
+                // 确保加载的索引有效
+                if (parsedIndex >= 0 && parsedIndex < formulas.length) {
+                    currentIndex = parsedIndex;
+                }
+            }
+        }
+
+        // 初始化应用显示和加载进度
+        function initializeApp() {
+            totalFormulasElem.textContent = formulas.length; // 设置总卡片数
+            loadProgress(); // 加载上次的进度
+            displayFormula(); // 显示当前公式
+        }
+
+        // 根据 currentIndex 显示对应公式的内容
+        function displayFormula() {
+            if (formulas.length === 0) {
+                // 如果公式列表为空
+                formulaNameElem.textContent = "公式列表为空";
+                formulaScenarioElem.textContent = "请在代码中添加公式。";
+                formulaEquationElem.innerHTML = ""; // 清空公式显示
+                formulaMnemonicElem.textContent = "";
+                formulaNotesElem.textContent = "";
+                currentFormulaInput.value = 0;
+                currentFormulaDisplay.textContent = 0;
+                return;
+            }
+
+            const formula = formulas[currentIndex];
+            formulaNameElem.textContent = formula.name;
+            formulaScenarioElem.textContent = formula.scenario;
+            formulaMnemonicElem.textContent = formula.mnemonic;
+            formulaNotesElem.textContent = formula.notes;
+            
+            // 为 LaTeX 公式设置 innerHTML，然后通知 MathJax 进行渲染
+            formulaEquationElem.innerHTML = formula.formula;
+            if (window.MathJax) {
+                // 使用 MathJax.typesetPromise 确保异步渲染完成后再执行其他操作
+                MathJax.typesetPromise([formulaEquationElem]).then(() => {
+                    // console.log('MathJax typesetting complete.'); // 可以在控制台查看渲染是否成功
+                }).catch((err) => console.error('MathJax typesetting failed:', err));
+            }
+
+            currentFormulaInput.value = currentIndex + 1; // 更新序号输入框 (1-based)
+            currentFormulaDisplay.textContent = currentIndex + 1; // 更新当前序号显示 (1-based)
+
+            saveProgress(); // 每次显示新公式时保存进度
+        }
+
+        // 切换到下一个公式 (循环)
+        function goToNextFormula() {
+            currentIndex = (currentIndex + 1) % formulas.length;
+            displayFormula();
+        }
+
+        // 切换到上一个公式 (循环)
+        function goToPreviousFormula() {
+            currentIndex = (currentIndex - 1 + formulas.length) % formulas.length; // 确保索引不会变为负数
+            displayFormula();
+        }
+
+        // 跳转到指定序号的公式
+        function jumpToFormula() {
+            let inputVal = parseInt(currentFormulaInput.value, 10);
+            if (isNaN(inputVal) || inputVal < 1 || inputVal > formulas.length) {
+                alert(`请输入一个介于 1 到 ${formulas.length} 之间的数字。`);
+                currentFormulaInput.value = currentIndex + 1; // 恢复到当前有效值
+                return;
+            }
+            currentIndex = inputVal - 1; // 转换为0-based索引
+            displayFormula();
+            // currentFormulaInput.blur(); // 可选：跳转后移除输入框焦点
+        }
+
+        // 事件监听器
+        nextButton.addEventListener('click', goToNextFormula);
+        prevButton.addEventListener('click', goToPreviousFormula);
+        currentFormulaInput.addEventListener('change', jumpToFormula); // 在输入框失去焦点时或按Enter键时触发
+        // 增加对回车键的监听，实现在输入框中按回车即可跳转
+        currentFormulaInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                jumpToFormula();
+                currentFormulaInput.blur(); // 按回车后移除焦点
+            }
+        });
+
+        // 页面完全加载后初始化应用
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        // 可选：在用户离开页面前保存进度
+        window.addEventListener('beforeunload', saveProgress);
+
+    </script>
+</body>
+</html>
