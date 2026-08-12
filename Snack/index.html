@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>贪吃蛇</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <div id="top-timer" class="top-timer">无限</div>
+
+        <header class="top-bar">
+          <div>
+            <p class="label">Snake</p>
+            <h1>贪吃蛇</h1>
+          </div>
+          <div class="header-controls">
+            <button id="start-btn" type="button">开始游戏</button>
+            <button id="pause-btn" type="button" class="control-btn" disabled>暂停</button>
+            <button id="restart-btn" type="button" class="control-btn">重新开始</button>
+          </div>
+        </header>
+
+      <section class="scoreboard" aria-label="score board">
+        <div class="score-box">
+          <span class="score-label">分数</span>
+          <strong id="score">0</strong>
+        </div>
+        <div class="score-box">
+          <span class="score-label">最佳</span>
+          <strong id="best-score">0</strong>
+        </div>
+      </section>
+
+      <section class="settings" aria-label="game settings">
+        <label class="setting">
+          皮肤
+          <select id="skin-select">
+            <option value="default">默认</option>
+            <option value="neon">霓虹</option>
+            <option value="retro">复古</option>
+          </select>
+        </label>
+
+        <label class="setting">
+          模式
+          <select id="mode-select">
+            <option value="classic">经典</option>
+            <option value="timed">计时</option>
+          </select>
+        </label>
+
+        <label class="setting">
+          难度
+          <select id="difficulty-select">
+            <option value="easy">简单</option>
+            <option value="normal" selected>普通</option>
+            <option value="hard">困难</option>
+          </select>
+        </label>
+
+        <label class="setting">
+          声音
+          <input id="sound-toggle" type="checkbox" checked />
+        </label>
+
+        <label class="setting time-opts hidden" id="time-opts">
+          计时（秒）
+          <select id="time-select">
+            <option value="30">30</option>
+            <option value="60" selected>60</option>
+            <option value="120">120</option>
+          </select>
+        </label>
+      </section>
+
+      <div class="game-wrap">
+        <canvas id="game" width="400" height="400" aria-label="贪吃蛇游戏界面"></canvas>
+        <div id="overlay" class="overlay">
+          <div class="overlay-card">
+            <h2 id="status-text">按下开始</h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls" aria-label="游戏控制">
+        <button data-direction="up" class="dir-btn" type="button">↑</button>
+        <div class="middle-row">
+          <button data-direction="left" class="dir-btn" type="button">←</button>
+          <button data-direction="down" class="dir-btn" type="button">↓</button>
+          <button data-direction="right" class="dir-btn" type="button">→</button>
+        </div>
+      </div>
+    </main>
+
+    <audio id="bg-audio" src="bg.mp3" loop preload="auto"></audio>
+
+    <script src="script.js"></script>
+  </body>
+</html>
