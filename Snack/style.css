@@ -158,6 +158,8 @@ body {
   border-radius: 22px;
   box-shadow: 0 18px 48px rgba(15, 23, 42, 0.45);
   padding: 22px 20px 18px;
+  transform: scale(0.9);
+  transform-origin: top center;
 }
 
 .top-bar {

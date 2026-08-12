@@ -158,8 +158,11 @@ function applySettings() {
   applySkin(skinSelect.value);
   if (mode === 'timed') {
     timeOpts.classList.remove('hidden');
+    // allow changing only when not running and not paused (only before start)
+    if (timeSelect) timeSelect.disabled = (isRunning || isPaused) ? true : false;
   } else {
     timeOpts.classList.add('hidden');
+    if (timeSelect) timeSelect.disabled = true;
   }
   // update top timer display according to mode
   updateTopTimer();
@@ -367,8 +370,8 @@ function endGame() {
   stopTimer();
   stopBackgroundMusic();
   if (soundOn) playBeep(120, 0.25, 0.12);
-  // re-enable time selection after round
-  if (timeSelect) timeSelect.disabled = false;
+  // re-enable time selection after round only if in timed mode
+  if (timeSelect) timeSelect.disabled = (mode === 'timed') ? false : true;
   if (pauseBtn) pauseBtn.disabled = true;
 }
 
